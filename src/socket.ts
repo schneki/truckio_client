@@ -4,6 +4,7 @@ import {Keys} from "./input"
 
 export let my_id: number;
 export let initialized = false;
+let client_list_received = false;
 
 let socket: WebSocket;
 
@@ -11,7 +12,6 @@ export function start() {
   socket = new WebSocket("ws://localhost:5012", "protocolOne");
 
   socket.onopen = event => {
-
 
     socket.onmessage = event => {
       let parsed = JSON.parse(event.data);
@@ -21,7 +21,9 @@ export function start() {
       let data = parsed.data;
       switch(t) {
         case "client": {
-          let client = new Client(id, data.x, data.z, 0)
+          let client = 
+            new Client(data.id, data.x, data.z, data.angle,
+                    data.speed, data.rotation_speed)
           clients[id] = client;
           scene.add(client.mesh);
 
@@ -33,12 +35,23 @@ export function start() {
           break;
         }
         case "client_list": {
+          if(!client_list_received) {
             for (let key in data) {
-              console.log(data[key]);
-              let client = new Client(data[key].id, data[key].x, data[key].z, data[key].angle)
-              clients[data[key].id] = client;
-              scene.add(client.mesh);
+              if (data[key].id != my_id) {
+                let client = 
+                  new Client(data[key].id, data[key].x, data[key].z, data[key].angle,
+                    data[key].speed, data[key].rotation_speed)
+                clients[data[key].id] = client;
+                scene.add(client.mesh);
+              }
             }
+            setInterval(update_clients(), 1000);
+            client_list_received = true;
+          } else {
+            for (let key in data) {
+              clients[data[key].id].set_values(data[key].x ,data[key].z, data[key].angle);
+            }
+          }
               break;
         }
         case "move": {
@@ -58,6 +71,10 @@ export function start() {
       }
     }
   };
+}
+
+export function update_clients() {
+  socket.send(JSON.stringify({"t":"client_list"}));
 }
 
 
