@@ -19,6 +19,6 @@ export class Ground {
   }
 
   constructor() {
-    this.grid = new THREE.GridHelper(100,100);
+    this.grid = new THREE.GridHelper(1000,1000);
   }
 }

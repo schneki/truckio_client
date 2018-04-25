@@ -12,23 +12,23 @@ let keys = {left: false, right: false, boost: false};
 export function enable() {
 
   document.addEventListener("keypress", (event: KeyboardEvent) => {
-    if (event.key == "a") {
+    if (event.key == "a" || event.key == "ArrowLeft") {
       clients[my_id].keys.left = true;
       if(!keys.left) {
         send_move(clients[my_id].keys);
         keys.left = true;
       }
     }
-    if (event.key == "e") {
+    if (event.key == "e" || event.key == "ArrowRight" || event.key == "d") {
       clients[my_id].keys.right = true;
       if(!keys.right) {
         send_move(clients[my_id].keys);
         keys.right = true;
       }
     }
-    if (event.key == ",") {
+    if (event.key == "," || event.keyCode) {
       clients[my_id].keys.boost = true;
-      if(!keys.left) {
+      if(!keys.boost) {
         send_move(clients[my_id].keys);
         keys.boost = true;
       }
@@ -36,12 +36,12 @@ export function enable() {
   })
 
   document.addEventListener("keyup", (event:KeyboardEvent) => {
-    if (event.key == "a") {
+    if (event.key == "a" || event.key == "ArrowLeft") {
       clients[my_id].keys.left = false;
       keys.left = false;
       send_move(clients[my_id].keys);
     }
-    if (event.key == "e") {
+    if (event.key == "e" || event.key == "ArrowRight" || event.key == "d"){
       clients[my_id].keys.right = false;
       keys.right = false;
       send_move(clients[my_id].keys);

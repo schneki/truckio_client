@@ -1,4 +1,4 @@
-import {clients, scene} from "./global"
+import {clients, scene, gui} from "./global"
 import {Client} from "./client"
 import {Keys} from "./input"
 
@@ -9,7 +9,7 @@ let client_list_received = false;
 let socket: WebSocket;
 
 export function start() {
-  socket = new WebSocket("ws://localhost:5012", "protocolOne");
+  socket = new WebSocket("ws://192.168.0.14:5012", "protocolOne");
 
   socket.onopen = event => {
 
@@ -23,18 +23,24 @@ export function start() {
         case "client": {
           let client = 
             new Client(data.id, data.x, data.z, data.angle,
-                    data.speed, data.rotation_speed)
-          clients[id] = client;
+              data.speed, 
+              data.rotation_speed,
+              !initialized)
+          clients[id] = client
           scene.add(client.mesh);
 
+
+          //
           if(!initialized) {
             my_id = id;
             socket.send(JSON.stringify({"t":"client_list"}));
+            setInterval(update_clients, 1000);
             initialized = true;
           }
           break;
         }
         case "client_list": {
+            console.log("getting applied");
           if(!client_list_received) {
             for (let key in data) {
               if (data[key].id != my_id) {
@@ -45,10 +51,11 @@ export function start() {
                 scene.add(client.mesh);
               }
             }
-            setInterval(update_clients(), 1000);
             client_list_received = true;
           } else {
             for (let key in data) {
+              console.log(clients[data[key].id].z - (data[key].z));
+              //console.log(clients[data[key].id].angle - data[key].angle)
               clients[data[key].id].set_values(data[key].x ,data[key].z, data[key].angle);
             }
           }
@@ -79,6 +86,6 @@ export function update_clients() {
 
 
 export function send_move(keys: Keys) {
-  console.log(keys);
-  socket.send(JSON.stringify({"t":"move", "data": keys}))
+  //console.log(keys);
+  socket.send(JSON.stringify({"t":"move", "time": Date.now(), "data": keys}))
 }

@@ -1,8 +1,7 @@
 import * as THREE from "three"
 import {start} from "./socket"
 import {Ground} from "./ground"
-import {animate} from "./render"
-import {logic} from "./logic"
+import {animate, logic} from "./render"
 import {camera, scene} from "./global"
 import {enable} from "./input"
 
@@ -20,7 +19,6 @@ function init() {
 
 init()
 enable()
-setInterval(logic, 10)
 animate()
 start()
 
