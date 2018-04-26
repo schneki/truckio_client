@@ -1,5 +1,4 @@
-import {clients} from "./global"
-import {my_id, send_move} from "./socket"
+import {send_move} from "./socket/socket"
 
 export interface Keys {
   left: boolean;
@@ -13,43 +12,43 @@ export function enable() {
 
   document.addEventListener("keypress", (event: KeyboardEvent) => {
     if (event.key == "a" || event.key == "ArrowLeft") {
-      clients[my_id].keys.left = true;
+      //      clients[my_id].keys.left = true;
       if(!keys.left) {
-        send_move(clients[my_id].keys);
         keys.left = true;
+        send_move(keys);
       }
     }
     if (event.key == "e" || event.key == "ArrowRight" || event.key == "d") {
-      clients[my_id].keys.right = true;
+      //clients[my_id].keys.right = true;
       if(!keys.right) {
-        send_move(clients[my_id].keys);
         keys.right = true;
+        send_move(keys);
       }
     }
     if (event.key == "," || event.keyCode) {
-      clients[my_id].keys.boost = true;
+      //clients[my_id].keys.boost = true;
       if(!keys.boost) {
-        send_move(clients[my_id].keys);
         keys.boost = true;
+        send_move(keys);
       }
     }
   })
 
   document.addEventListener("keyup", (event:KeyboardEvent) => {
     if (event.key == "a" || event.key == "ArrowLeft") {
-      clients[my_id].keys.left = false;
+      //clients[my_id].keys.left = false;
       keys.left = false;
-      send_move(clients[my_id].keys);
+      send_move(keys);
     }
     if (event.key == "e" || event.key == "ArrowRight" || event.key == "d"){
-      clients[my_id].keys.right = false;
+      //clients[my_id].keys.right = false;
       keys.right = false;
-      send_move(clients[my_id].keys);
+      send_move(keys);
     }
     if (event.key == ",") {
-      clients[my_id].keys.boost = false;
+      //clients[my_id].keys.boost = false;
       keys.boost = false;
-      send_move(clients[my_id].keys);
+      send_move(keys);
     }
   })
 }

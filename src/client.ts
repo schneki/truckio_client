@@ -1,41 +1,42 @@
 import * as THREE from "three"
 import { Keys } from "./input"
-import {scene, gui, camera} from "./global"
+import {Serializable} from "./util"
 
-export class Client {
+export class Client implements Serializable<Client> {
   keys: Keys = {left: false, right: false, boost: false}
   mesh: THREE.Mesh;
+  public id: number;
+  public x: number;
+  public z: number;
+  public angle: number;
+  public speed: number;
+  public rotation_speed: number;
+  public should_remove: boolean = false;
+  public mesh_exists: boolean = false;
+  public mesh_loaded: boolean = false;
 
-  constructor(public id: number, public x: number, public z: number, public angle: number,
-    public speed: number, public rotation_speed: number, public my_client = false) {
-
-    this.speed -= 0.03;
-    this.rotation_speed -= 0.003;
-
+  public create_mesh(scene: THREE.Scene) {
     let loader = new THREE.JSONLoader();
+    this.mesh_exists = true;
+
+    console.log("mesh created");
+
+
+    //to access this in the callback
     let client = this;
-      loader.load('./assets/truck.json', function(geometry) {
+    loader.load('./assets/truck.json', function(geometry) {
       let material = new THREE.MeshNormalMaterial();
-      scene.remove(client.mesh);
       let mesh = new THREE.Mesh(geometry, material);
       mesh.position.y = 1;
       client.mesh = mesh;
       scene.add(client.mesh);
-      //gui
-      let client_gui = gui.addFolder('Client: '+id); 
-      client_gui.add(client, "x").listen();
-      client_gui.add(client, "z").listen();
-
-      if(client.my_client) {
-        client.mesh.add(camera);
-        camera.position.y = 2;
-      }
+      client.mesh_loaded = true;
     });
-    
-     
-    let geometry = new THREE.BoxGeometry(0.5,0.5,1);
-    let material = new THREE.MeshNormalMaterial();
-    this.mesh = new THREE.Mesh(geometry, material);
+  }
+
+  public remove(scene: THREE.Scene) {
+    console.log("remove mesh");
+    scene.remove(this.mesh);
   }
 
   public movement() {
@@ -53,6 +54,16 @@ export class Client {
     this.mesh.position.x = this.x
     this.mesh.position.z = this.z
 
+  }
+
+  public deserialize(input: any): Client {
+    this.id = input.id;
+    this.x = input.x;
+    this.z = input.z;
+    this.angle = input.angle;
+    this.speed = input.speed;
+    this.rotation_speed = input.rotation_speed;
+    return this;
   }
 
   public set_keys(keys: any) {
