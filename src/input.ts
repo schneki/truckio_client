@@ -1,32 +1,33 @@
 import {send_move} from "./socket/socket"
+import {Client} from "./client"
 
 export interface Keys {
+  id: number;
   left: boolean;
   right: boolean;
   boost: boolean;
 }
 
-let keys = {left: false, right: false, boost: false};
+let keys = {id: 0, left: false, right: false, boost: false};
 
-export function enable() {
+export function enable(clients: {[id:number]: Client}, id: number) {
 
   document.addEventListener("keypress", (event: KeyboardEvent) => {
     if (event.key == "a" || event.key == "ArrowLeft") {
-      //      clients[my_id].keys.left = true;
       if(!keys.left) {
+        clients[id].keys.left = true;
         keys.left = true;
-        send_move(keys);
+        send_move(clients[id].keys);
       }
     }
     if (event.key == "e" || event.key == "ArrowRight" || event.key == "d") {
-      //clients[my_id].keys.right = true;
       if(!keys.right) {
+        clients[id].keys.right = true;
         keys.right = true;
-        send_move(keys);
+        send_move(clients[id].keys);
       }
     }
     if (event.key == "," || event.keyCode) {
-      //clients[my_id].keys.boost = true;
       if(!keys.boost) {
         keys.boost = true;
         send_move(keys);
@@ -36,17 +37,16 @@ export function enable() {
 
   document.addEventListener("keyup", (event:KeyboardEvent) => {
     if (event.key == "a" || event.key == "ArrowLeft") {
-      //clients[my_id].keys.left = false;
+      clients[id].keys.left = false;
       keys.left = false;
-      send_move(keys);
+      send_move(clients[id].keys);
     }
     if (event.key == "e" || event.key == "ArrowRight" || event.key == "d"){
-      //clients[my_id].keys.right = false;
+      clients[id].keys.right = false;
       keys.right = false;
-      send_move(keys);
+      send_move(clients[id].keys);
     }
     if (event.key == ",") {
-      //clients[my_id].keys.boost = false;
       keys.boost = false;
       send_move(keys);
     }

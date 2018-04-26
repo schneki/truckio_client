@@ -5,6 +5,8 @@ import {Serializable} from "./util"
 export class Client implements Serializable<Client> {
   keys: Keys = {left: false, right: false, boost: false}
   mesh: THREE.Mesh;
+  public creation_time: number;
+  public update_time: number;
   public id: number;
   public x: number;
   public z: number;
@@ -63,6 +65,8 @@ export class Client implements Serializable<Client> {
     this.angle = input.angle;
     this.speed = input.speed;
     this.rotation_speed = input.rotation_speed;
+    this.creation_time = input.creation_time;
+    this.update_time = input.update_time;
     return this;
   }
 

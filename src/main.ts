@@ -1,8 +1,7 @@
 import * as THREE from "three"
 import {handle_socket} from "./socket/socket"
 import {Ground} from "./ground"
-import {render} from "./render"
-import {enable} from "./input"
+import {render, start_logic} from "./render"
 import {Client} from "./client"
 
 
@@ -20,10 +19,10 @@ function main() {
 
   let clients: { [id: number]: Client } = {};
 
-  render(renderer, scene, camera, clients);
-  handle_socket(clients);
-
-  enable();
+  handle_socket(clients, (my_id: number) => {
+    render(renderer, scene, camera, my_id, clients);
+  });
+  start_logic(clients, Date.now());
 }
 
 main();

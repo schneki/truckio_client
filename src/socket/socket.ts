@@ -4,14 +4,16 @@ import {handle_move} from "./move_handler";
 import {handle_close} from "./close_handler";
 import * as THREE from "three";
 import {Client} from "../client";
-import {Keys} from "../input";
+import {Keys, enable} from "../input";
 
 
 let socket: WebSocket;
+let my_id: number;
 
-export function handle_socket(clients: { [id: number]: Client } ) {
+export function handle_socket(clients: { [id: number]: Client } , callback) {
   socket = new WebSocket("ws://192.168.0.14:5012", "protocolOne");
 
+  let client_list_requested = false;
   socket.onopen = event => {
 
     socket.onmessage = event => {
@@ -19,6 +21,15 @@ export function handle_socket(clients: { [id: number]: Client } ) {
       switch(parsed.t) {
         case "client": {
           handle_client(parsed.data, clients);
+
+          //request client list
+          if(!client_list_requested) {
+            my_id = parsed.id;
+            enable(clients, my_id);
+            callback(my_id);
+            socket.send(JSON.stringify({"t":"client_list"}));
+            client_list_requested = true;
+          }
           break;
         }
         case "client_list": {
@@ -26,10 +37,31 @@ export function handle_socket(clients: { [id: number]: Client } ) {
           break;
         }
         case "update": {
+          for(let key in parsed.data) {
+            let k = parseInt(key);
+            let client_data = new Client().deserialize(parsed.data[key]);
+            let client = clients[k];
+
+
+            client.update_time = client_data.update_time;
+
+            let delay_ms = Date.now() - client.update_time;
+            let delay_step = delay_ms * (client.speed/10);
+            //client.z += delay_step
+
+
+            //console.log(client.z - client_data.z);
+
+
+            client.x = client_data.x;
+            client.z = client_data.z;
+            client.angle = client_data.angle;
+          }
           break;
         }
         case "move": {
-          handle_move(parsed.id, parsed.data, clients);
+          console.log(parsed.data);
+          handle_move(my_id, parsed.data, clients);
           break;
         }
         case "close": {
@@ -48,6 +80,6 @@ export function update_clients() {
 
 
 export function send_move(keys: Keys) {
-  //console.log(keys);
+  keys.id = my_id;
   socket.send(JSON.stringify({"t":"move", "time": Date.now(), "data": keys}))
 }
