@@ -2,15 +2,19 @@ import {handle_client} from "./client_handler";
 import {handle_client_list} from "./client_list_handler";
 import {handle_move} from "./move_handler";
 import {handle_close} from "./close_handler";
+import {handle_update} from "./update_handler";
 import * as THREE from "three";
 import {Client} from "../client";
 import {Keys, enable} from "../input";
+import {Map} from "../map_handler";
 
 
 let socket: WebSocket;
 let my_id: number;
 
-export function handle_socket(clients: { [id: number]: Client } , callback) {
+export function handle_socket(clients: { [id: number]: Client }, map: {[id:number]:Map}, 
+  callback: (x: number) => void) {
+
   socket = new WebSocket("ws://192.168.0.14:5012", "protocolOne");
 
   let client_list_requested = false;
@@ -24,7 +28,7 @@ export function handle_socket(clients: { [id: number]: Client } , callback) {
 
           //request client list
           if(!client_list_requested) {
-            my_id = parsed.id;
+            my_id = parseInt(parsed.id);
             enable(clients, my_id);
             callback(my_id);
             socket.send(JSON.stringify({"t":"client_list"}));
@@ -32,35 +36,36 @@ export function handle_socket(clients: { [id: number]: Client } , callback) {
           }
           break;
         }
+        case "map": {
+          //          map[0] = new Map().deserialize(parsed.data);
+          //map[0].loaded = true;
+          break;
+        }
+        case "col": {
+          clients[parsed.data.id].paused = true;
+          if(parsed.data.id == my_id) {
+            if(window.confirm("Do you want to respawn")) {
+              socket.send(JSON.stringify({"t":"respawn"}));
+            }
+          }
+          break;
+
+        }
+        case "respawn": {
+          clients[parsed.data.id].paused = false;
+          clients[parsed.data.id].deserialize(parsed.data);
+          break;
+
+        }
         case "client_list": {
           handle_client_list(parsed.data, clients);
           break;
         }
         case "update": {
-          for(let key in parsed.data) {
-            let k = parseInt(key);
-            let client_data = new Client().deserialize(parsed.data[key]);
-            let client = clients[k];
-
-
-            client.update_time = client_data.update_time;
-
-            let delay_ms = Date.now() - client.update_time;
-            let delay_step = delay_ms * (client.speed/10);
-            //client.z += delay_step
-
-
-            //console.log(client.z - client_data.z);
-
-
-            client.x = client_data.x;
-            client.z = client_data.z;
-            client.angle = client_data.angle;
-          }
+          handle_update(parsed.data, clients);
           break;
         }
         case "move": {
-          console.log(parsed.data);
           handle_move(my_id, parsed.data, clients);
           break;
         }
@@ -81,5 +86,6 @@ export function update_clients() {
 
 export function send_move(keys: Keys) {
   keys.id = my_id;
+  keys.time = Date.now();
   socket.send(JSON.stringify({"t":"move", "time": Date.now(), "data": keys}))
 }

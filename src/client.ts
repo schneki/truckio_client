@@ -3,8 +3,9 @@ import { Keys } from "./input"
 import {Serializable} from "./util"
 
 export class Client implements Serializable<Client> {
-  keys: Keys = {left: false, right: false, boost: false}
+  keys: Keys = {id: 0, time: 0, left: false, right: false, boost: false}
   mesh: THREE.Mesh;
+  temp_keys: Keys = {id:0, time:0, left:false, right:false, boost:false};
   public creation_time: number;
   public update_time: number;
   public id: number;
@@ -16,6 +17,7 @@ export class Client implements Serializable<Client> {
   public should_remove: boolean = false;
   public mesh_exists: boolean = false;
   public mesh_loaded: boolean = false;
+  public paused: boolean = false;
 
   public create_mesh(scene: THREE.Scene) {
     let loader = new THREE.JSONLoader();
@@ -30,6 +32,7 @@ export class Client implements Serializable<Client> {
       let material = new THREE.MeshNormalMaterial();
       let mesh = new THREE.Mesh(geometry, material);
       mesh.position.y = 1;
+      mesh.scale.set(0.5,0.5,0.5);
       client.mesh = mesh;
       scene.add(client.mesh);
       client.mesh_loaded = true;
@@ -41,20 +44,22 @@ export class Client implements Serializable<Client> {
     scene.remove(this.mesh);
   }
 
-  public movement() {
+  public movement(delta: number) {
+    if(this.paused) { return; };
     if(this.keys.left) { this.angle += this.rotation_speed }
     if(this.keys.right) { this.angle -= this.rotation_speed }
 
     let speed = this.keys.boost ? this.speed*2 : this.speed;
+    speed * delta;
     
-    this.x += (Math.sin(-this.angle) * speed);
-    this.z -= (Math.cos(-this.angle) * speed);
+    this.x += Math.sin(-this.angle) * speed;
+    this.z -= Math.cos(-this.angle) * speed;
   }
 
   public animate() {
     this.mesh.rotation.y = this.angle;
-    this.mesh.position.x = this.x
-    this.mesh.position.z = this.z
+    this.mesh.position.x = this.x;
+    this.mesh.position.z = this.z;
 
   }
 
@@ -70,7 +75,7 @@ export class Client implements Serializable<Client> {
     return this;
   }
 
-  public set_keys(keys: any) {
+  public set_keys(keys: Keys) {
     this.keys = keys;
   }
 
